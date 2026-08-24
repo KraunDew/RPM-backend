@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
 export class usersService {
-  getUsers() {
-    return ['Pene', 'si'];
+  createUser(createUserDto: CreateUserDto): CreateUserDto {
+    console.log('Creating user:', createUserDto);
+    return createUserDto;
   }
 }

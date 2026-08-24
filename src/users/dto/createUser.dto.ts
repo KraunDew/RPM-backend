@@ -7,7 +7,6 @@ import {
   IsPhoneNumber,
   IsString,
   IsStrongPassword,
-  MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { AddressDto } from './address.dto';
@@ -26,15 +25,14 @@ export class CreateUserDto {
   @IsNotEmpty()
   email!: string;
 
-  @IsPhoneNumber('CL')
   @IsString()
   @IsNotEmpty()
-  @MaxLength(12)
+  @IsPhoneNumber('CL')
   phone!: string; //+56912345678
 
-  @IsStrongPassword()
   @IsString()
   @IsNotEmpty()
+  @IsStrongPassword()
   password!: string;
 
   @IsString()
