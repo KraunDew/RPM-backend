@@ -6,7 +6,7 @@ import { SuppliersService } from './suppliers.service';
 export class SuppliersController {
   constructor(private suppliersService: SuppliersService) {}
   @Post()
-  createSupplier(@Body() supplierData: SupplierDto): any {
+  createSupplier(@Body() supplierData: SupplierDto) {
     return this.suppliersService.createSupplier(supplierData);
   }
 }
