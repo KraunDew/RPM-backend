@@ -1,5 +1,14 @@
+/**
+ * ARCHIVO: product.dto.ts
+ * DESCRIPCIÓN: Data Transfer Object para validar datos de productos.
+ * FUNCIONALIDAD:
+ *   - Define la estructura y validación de un producto
+ *   - Valida campos como nombre (string), precio (número positivo) y stock (mínimo 0)
+ *   - Incluye campos opcionales para modelo, material y descripción
+ *   - Se utiliza en el DTO de proveedor para validar productos
+ */
+
 import {
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsPositive,
@@ -9,20 +18,22 @@ import {
 
 export class ProductDto {
   @IsString()
-  @IsNotEmpty()
-  name!: string;
+  @IsOptional()
+  name?: string;
 
   @IsNumber()
   @IsPositive()
-  price!: number;
+  @IsOptional()
+  price?: number;
 
   @IsNumber()
   @Min(0)
-  stock!: number;
+  @IsOptional()
+  stock?: number;
 
   @IsString()
-  @IsNotEmpty()
-  model!: string;
+  @IsOptional()
+  model?: string;
 
   @IsOptional()
   @IsString()

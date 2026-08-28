@@ -1,8 +1,17 @@
+/**
+ * ARCHIVO: supplier.dto.ts
+ * DESCRIPCIÓN: Data Transfer Object para validar datos de proveedores.
+ * FUNCIONALIDAD:
+ *   - Define la estructura y validación de un proveedor
+ *   - Valida campos como nombre, teléfono, email y dirección
+ *   - Permite incluir un array de productos ofrecidos por el proveedor
+ *   - Utiliza class-validator para garantizar la integridad de los datos
+ */
+
 import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEmail,
-  IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -13,22 +22,22 @@ import { ProductDto } from './product.dto';
 
 export class SupplierDto {
   @IsString()
-  @IsNotEmpty()
-  name!: string;
+  @IsOptional()
+  name?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @IsPhoneNumber('CL')
-  phone!: string;
+  phone?: string;
 
   @IsString()
   @IsEmail()
-  @IsNotEmpty()
-  email!: string;
+  @IsOptional()
+  email?: string;
 
   @ValidateNested()
   @Type(() => AddressDto)
-  address!: AddressDto;
+  address?: AddressDto;
 
   @IsOptional()
   @IsArray()

@@ -1,98 +1,310 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+<div align="center">
+  <h1>🚗 RPM - Tienda Online de Repuestos de Autos</h1>
+  <p><strong>Backend API para la plataforma e-commerce de repuestos automotrices con asistencia de IA</strong></p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-13AA52?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+</div>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 📋 Tabla de Contenidos
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Descripción del Proyecto](#descripción-del-proyecto)
+- [Características Principales](#características-principales)
+- [Tecnologías Utilizadas](#tecnologías-utilizadas)
+- [Instalación](#instalación)
+- [Guía de Ejecución](#guía-de-ejecución)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [API Endpoints](#api-endpoints)
+- [Variables de Entorno](#variables-de-entorno)
+- [Guía de Desarrollo](#guía-de-desarrollo)
 
-## Project setup
+---
+
+## 🎯 Descripción del Proyecto
+
+**RPM** es una plataforma de comercio electrónico especializada en la venta de repuestos automotrices. El backend proporciona todos los servicios necesarios para gestionar:
+
+- 🛒 **Catálogo de productos y proveedores**
+- 👥 **Gestión de usuarios y cuentas**
+- 📦 **Sistema de órdenes y compras**
+- 🤖 **Integración con IA para búsqueda inteligente de repuestos**
+- 📞 **Asistente virtual para agendar citas en sucursales**
+
+---
+
+## ✨ Características Principales
+
+### 🤖 Asistente de IA para Búsqueda de Repuestos
+
+- Búsqueda **sin necesidad de lenguaje técnico**
+- El cliente describe su problema en palabras simples
+- La IA identifica automáticamente el repuesto necesario
+- Muestra sugerencias de productos relevantes
+- **Ejemplo:** "Mi auto no frena bien" → Propone pastillas de freno, discos, cilindros maestros
+
+### 📱 Asistente de Llamadas por IA
+
+- Agende citas **de forma automática**
+- Asistente de voz que entiende el lenguaje natural
+- Consulta disponibilidad en tiempo real
+- Confirma citas sin intervención humana
+- Integración con calendario de sucursales
+
+### 🏬 Gestión de Tienda Online
+
+- Catálogo completo de repuestos automotrices
+- Gestión de proveedores y sus productos
+- Sistema de órdenes y carrito de compras
+- Información de contacto y ubicación de sucursales
+
+### 🔐 Seguridad y Validación
+
+- Validación de datos en todos los endpoints
+- Autenticación de usuarios
+- CORS habilitado para desarrollo
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+<div align="center">
+
+| Tecnología                                                                                      | Versión | Descripción                              |
+| ----------------------------------------------------------------------------------------------- | ------- | ---------------------------------------- |
+| ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat-square&logo=nestjs)             | Latest  | Framework backend progresivo y escalable |
+| ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript) | Latest  | Lenguaje tipado para mayor seguridad     |
+| ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=node.js)          | 18+     | Runtime de JavaScript                    |
+| ![MongoDB](https://img.shields.io/badge/MongoDB-13AA52?style=flat-square&logo=mongodb)          | Latest  | Base de datos NoSQL                      |
+| ![Mongoose](https://img.shields.io/badge/Mongoose-800000?style=flat-square&logo=mongoose)       | Latest  | ODM para MongoDB                         |
+
+</div>
+
+### Stack Completo:
+
+- **Backend:** NestJS + TypeScript
+- **Runtime:** Node.js
+- **Base de Datos:** MongoDB
+- **Validación:** class-validator, class-transformer
+- **ORM:** Mongoose
+
+---
+
+## 📦 Instalación
+
+### Requisitos Previos
+
+- Node.js 18 o superior
+- npm o yarn
+- MongoDB instalado o acceso a MongoDB Atlas
+- Git
+
+### Pasos de Instalación
+
+1. **Clonar el repositorio**
 
 ```bash
-$ npm install
+git clone <URL_DEL_REPOSITORIO>
+cd RPM/backend
 ```
 
-## Compile and run the project
+2. **Instalar dependencias**
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+3. **Configurar variables de entorno**
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 🚀 Guía de Ejecución
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Modo Desarrollo
+
+Ejecuta la aplicación en modo observador (hot-reload):
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Modo Producción
 
-## Resources
+Compila y ejecuta la aplicación:
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+npm run build
+npm run start:prod
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Modo Normal
 
-## Support
+```bash
+npm run start
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+La API estará disponible en: `http://localhost:3000`
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📂 Estructura del Proyecto
 
-## License
+```
+src/
+├── main.ts                 # Punto de entrada de la aplicación
+├── app.module.ts          # Módulo raíz
+├── users/                 # Módulo de usuarios
+│   ├── users.controller.ts
+│   ├── users.service.ts
+│   ├── users.module.ts
+│   └── dto/
+│       ├── user.dto.ts
+│       └── address.dto.ts
+├── suppliers/             # Módulo de proveedores
+│   ├── suppliers.controller.ts
+│   ├── suppliers.service.ts
+│   ├── suppliers.module.ts
+│   └── dto/
+│       ├── supplier.dto.ts
+│       └── product.dto.ts
+├── orders/                # Módulo de órdenes
+│   └── dto/
+│       ├── order.dto.ts
+│       └── detailOrder.dto.ts
+└── schemas/               # Esquemas de MongoDB
+    ├── userSchema.ts
+    ├── addressSchema.ts
+    ├── supplierSchema.ts
+    ├── productSchema.ts
+    ├── orderSchema.ts
+    └── detailSchema.ts
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Para más detalles sobre la estructura, consulta [ESTRUCTURA_PROYECTO.md](./ESTRUCTURA_PROYECTO.md)
+
+---
+
+## 🌐 API Endpoints
+
+### 👥 Usuarios
+
+```
+GET    /users           # Obtener todos los usuarios
+POST   /users           # Crear nuevo usuario
+PATCH  /users/:id       # Actualizar usuario
+DELETE /users           # Eliminar usuarios
+```
+
+### 🏢 Proveedores
+
+```
+POST   /suppliers       # Crear proveedor
+```
+
+### 📦 Órdenes
+
+```
+(En desarrollo)
+```
+
+---
+
+## 🔧 Variables de Entorno
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+```env
+# Puerto
+PORT=3000
+
+# Base de Datos MongoDB
+URL_MONGOODB=mongodb://localhost:27017/rpm
+# O para MongoDB Atlas:
+# URL_MONGOODB=mongodb+srv://<usuario>:<contraseña>@cluster.mongodb.net/rpm
+
+# Ambiente
+NODE_ENV=development
+
+# IA y Servicios (Próximas fases)
+OPENAI_API_KEY=your_api_key_here
+TWILIO_API_KEY=your_twilio_key_here
+```
+
+---
+
+## 💻 Guía de Desarrollo
+
+### Agregar una Nueva Funcionalidad
+
+1. **Crear DTOs** para validación en `/dto`
+2. **Crear Schema** en `/schemas` si es una entidad nueva
+3. **Crear Servicio** con la lógica de negocio
+4. **Crear Controlador** con las rutas HTTP
+5. **Crear Módulo** que integre todo
+6. **Importar Módulo** en `app.module.ts`
+
+### Convenciones de Código
+
+- ✅ Usar TypeScript en lugar de JavaScript
+- ✅ Seguir la arquitectura modular de NestJS
+- ✅ Crear DTOs para todas las rutas POST/PATCH
+- ✅ Incluir comentarios explicativos en funciones complejas
+- ✅ Mantener los servicios como única fuente de lógica de negocio
+
+### Testing
+
+```bash
+# Tests unitarios
+npm run test
+
+# Tests e2e
+npm run test:e2e
+
+# Coverage
+npm run test:cov
+```
+
+---
+
+## 🚀 Próximas Fases
+
+- [ ] Integración con OpenAI para asistente de búsqueda
+- [ ] Sistema de autenticación JWT
+- [ ] Integración con Twilio para asistente de llamadas
+- [ ] Sistema de pagos
+- [ ] Notificaciones por email
+- [ ] Dashboard administrativo
+
+---
+
+## 📚 Recursos Útiles
+
+- [Documentación de NestJS](https://docs.nestjs.com/)
+- [Documentación de MongoDB](https://docs.mongodb.com/)
+- [Documentación de Mongoose](https://mongoosejs.com/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+
+---
+
+## 📝 Licencia
+
+Este proyecto está licenciado bajo la Licencia MIT.
+
+---
+
+## 👥 Equipo de Desarrollo
+
+Proyecto desarrollado con ❤️ para mejorar la experiencia de compra de repuestos automotrices.
+
+---
+
+<div align="center">
+  <p><strong>¿Preguntas?</strong> Consulta la <a href="./ESTRUCTURA_PROYECTO.md">guía de estructura</a> o contacta al equipo de desarrollo.</p>
+</div>

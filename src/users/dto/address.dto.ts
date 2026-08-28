@@ -1,29 +1,40 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+/**
+ * ARCHIVO: address.dto.ts
+ * DESCRIPCIÓN: Data Transfer Object para validar datos de direcciones.
+ * FUNCIONALIDAD:
+ *   - Define la estructura y validación de una dirección
+ *   - Incluye campos como calle, región, ciudad, comuna, código postal
+ *   - Permite campos opcionales como bloque y descripción
+ *   - Se utiliza dentro del DTO de Usuario y Proveedor
+ *   - Valida que todos los campos sean strings
+ */
+
+import { IsOptional, IsString } from 'class-validator';
 
 export class AddressDto {
   @IsString()
-  @IsNotEmpty()
-  street!: string;
+  @IsOptional()
+  street?: string;
 
   @IsString()
-  @IsNotEmpty()
-  region!: string;
+  @IsOptional()
+  region?: string;
 
   @IsString()
-  @IsNotEmpty()
-  city!: string;
+  @IsOptional()
+  city?: string;
 
   @IsString()
-  @IsNotEmpty()
-  commune!: string;
+  @IsOptional()
+  commune?: string;
 
   @IsString()
-  @IsNotEmpty()
-  zip!: string;
+  @IsOptional()
+  zip?: string;
 
   @IsString()
-  @IsNotEmpty()
-  houseNumber!: string;
+  @IsOptional()
+  houseNumber?: string;
 
   @IsString()
   @IsOptional()
