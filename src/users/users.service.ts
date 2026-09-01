@@ -29,17 +29,44 @@ export class usersService {
   }
 
   async createUser(user: CreateUserDto) {
-    const password = await argon2.hash(user.password);
+    try {
+      const password = await argon2.hash(user.password); // hasheo de la contraseña
 
-    const newUser = {
-      ...user,
-      password,
-    };
+      const newUser = {
+        ...user, // copiamos el usuario
+        password, // le cambiamos el parametro de contraseña por la haseada
+      };
 
-    const createdUser = new this.userModel(newUser); //Guarda un Schema de usuario validado por el Dto
+      const existingUser = await this.userModel.findOne({
+        email: newUser.email,
+      }); // buscamos si el email esta en uso
+      if (existingUser) {
+        throw new HttpException('Email already in use', HttpStatus.CONFLICT); // si esta en uso le prohibimos la creación con ese correo
+      }
 
-    await createdUser.save(); // El Schema se guarda en la base de datos
-    return createdUser.id; // Devolvemos el id del usuario creado
+      const createdUser = new this.userModel(newUser); //Guarda un Schema de usuario validado por el Dto
+
+      await createdUser.save(); // El Schema se guarda en la base de datos
+      return createdUser.id; // Devolvemos el id del usuario creado
+    } catch (error) {
+      console.log(`Error creando usuario: ${error}`);
+    }
+  }
+
+  async loginUser(email: string, password: string) {
+    const user = await this.userModel.findOne({ email: email }); // Buscamos el usuario
+
+    if (!user) {
+      return new HttpException('Invalid Credentials', HttpStatus.BAD_REQUEST); // Si no se encuntra le decimos credenciales invalidas
+    }
+
+    const isValid = await argon2.verify(password, user.password); // validamos la cotraseña con la de la DB
+
+    if (!isValid) {
+      return new HttpException('Invalid Credentials', HttpStatus.BAD_REQUEST); // Si no coincide le devolvemos credenciales invalidas
+    }
+
+    return new HttpException('Login Succesfully', HttpStatus.OK); // Si pasa todo, le decimos Inicio de Sesion correcto
   }
 
   async updateUser(id: string, updateUser: UserDto) {

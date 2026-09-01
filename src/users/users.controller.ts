@@ -40,6 +40,11 @@ export class usersController {
     return this.usersService.createUser(createUser); // le damos los valores obtenidos en el Body / Formulario
   }
 
+  @Post('/login')
+  loginUser(@Body() user: UserDto) {
+    return this.usersService.loginUser(user.email!, user.password!);
+  }
+
   @Patch('/:id') // Creamos un parametro llamado id
   updateUser(@Param('id') id: string, @Body() updateUser: UserDto) {
     // Obtenemos el valor del parametro id, y lo que tiene el body / formulario
