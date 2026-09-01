@@ -21,6 +21,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { CreateUserDto } from './dto/createUser.dto';
 import { UserDto } from './dto/user.dto';
 import { usersService } from './users.service';
 
@@ -34,7 +35,7 @@ export class usersController {
   }
 
   @Post()
-  createUser(@Body() createUser: UserDto) {
+  createUser(@Body() createUser: CreateUserDto) {
     // Hacemos que el Body / formulario se evalue / compare con el Dto, evitando valores o tipos no deseado
     return this.usersService.createUser(createUser); // le damos los valores obtenidos en el Body / Formulario
   }

@@ -14,9 +14,11 @@
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import argon2 from 'argon2';
 import { Model } from 'mongoose';
 import { User } from 'src/schemas/userSchema';
-import type { UserDto } from './dto/user.dto';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class usersService {
@@ -26,13 +28,24 @@ export class usersService {
     return this.userModel.find(); //Devuelve todos los usuarios
   }
 
-  async createUser(user: UserDto) {
-    const createdUser = new this.userModel(user); //Guarda un Schema de usuario validado por el Dto
+  async createUser(user: CreateUserDto) {
+    const password = await argon2.hash(user.password);
+
+    const newUser = {
+      ...user,
+      password,
+    };
+
+    const createdUser = new this.userModel(newUser); //Guarda un Schema de usuario validado por el Dto
+
     await createdUser.save(); // El Schema se guarda en la base de datos
-    return createdUser; // Devolvemos el objeto del usuario creado
+    return createdUser.id; // Devolvemos el id del usuario creado
   }
 
   async updateUser(id: string, updateUser: UserDto) {
+    if (updateUser.password) {
+      updateUser.password = await argon2.hash(updateUser.password);
+    }
     const updatedUser = await this.userModel.findByIdAndUpdate(
       id, //Buscamos por la ID un usuario
       { $set: updateUser }, // Le actualizamos y/o agregamos esos datos
@@ -41,7 +54,7 @@ export class usersService {
     if (!updatedUser) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND); // En caso de que no encuentre algun usuario con esa ID tira un 404 Not Found
     }
-    return new HttpException(updatedUser, HttpStatus.ACCEPTED); // Devolvemos el usuario actualizado y un codigo 202(Accepted)
+    return new HttpException('User Updated', HttpStatus.ACCEPTED); // Devolvemos usuario actualizado y un codigo 202(Accepted)
   }
 
   async deleteUsers() {
@@ -50,7 +63,7 @@ export class usersService {
       throw new HttpException('No users found to delete', HttpStatus.NOT_FOUND); // En caso de no haber usuarios se muestra un 404 y un mensaje de que no hay usuarios
     }
     return new HttpException(
-      { message: `${result.deletedCount} users deleted successfully` },
+      `${result.deletedCount} users deleted successfully`,
       HttpStatus.OK,
     );
   }

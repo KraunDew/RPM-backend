@@ -14,7 +14,7 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.URL_MONGOODB ?? ''), //Busca la URL en el .env para conectarse a la BD
+    MongooseModule.forRoot(process.env.URL_MONGOODB!), //Busca la URL en el .env para conectarse a la BD
     UsersModule, //Importamos y usamos rutas y funciones de User
     SupplierModule, // Lo mismo con los proveedores
   ],
