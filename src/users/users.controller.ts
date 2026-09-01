@@ -34,7 +34,7 @@ export class usersController {
     return this.usersService.getAllUsers(); // Llamamos a la funcion creada en el servicio
   }
 
-  @Post()
+  @Post('/register')
   createUser(@Body() createUser: CreateUserDto) {
     // Hacemos que el Body / formulario se evalue / compare con el Dto, evitando valores o tipos no deseado
     return this.usersService.createUser(createUser); // le damos los valores obtenidos en el Body / Formulario

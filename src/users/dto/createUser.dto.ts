@@ -7,7 +7,7 @@
  *   - Incluye validación de teléfono (formato chileno: +56912345678)
  *   - Permite campos opcionales para flexibilidad
  *   - Valida RUT chileno, fecha de nacimiento y dirección
- *   - Se utiliza para validar datos entrantes en solicitudes POST/PATCH
+ *   - Se utiliza para validar datos entrantes en solicitudes POST
  */
 
 import { Type } from 'class-transformer';
