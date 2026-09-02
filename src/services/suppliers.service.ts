@@ -9,11 +9,24 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Supplier } from 'src/schemas/suppliersSchema';
 import { SupplierDto } from './dto/supplier.dto';
 
 @Injectable()
 export class SuppliersService {
-  createSupplier(supplierData: SupplierDto) {
-    console.log('Creating supplier:', supplierData);
+  constructor(
+    @InjectModel('Supplier') private supplierModel: Model<Supplier>,
+  ) {}
+
+  getSupplier(id: string) {
+    return this.supplierModel.findById(id);
+  }
+
+  async createSupplier(supplierData: SupplierDto) {
+    const createdSupplier = new this.supplierModel(supplierData);
+    await createdSupplier.save();
+    return createdSupplier;
   }
 }

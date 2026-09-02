@@ -8,10 +8,20 @@
  */
 
 import { Module } from '@nestjs/common';
+<<<<<<< HEAD:src/modules/suppliers.module.ts
 import { SuppliersController } from '../controllers/suppliers.controller';
 import { SuppliersService } from '../services/suppliers.service';
+=======
+import { MongooseModule } from '@nestjs/mongoose';
+import { SupplierSchema } from 'src/schemas/suppliersSchema';
+import { SuppliersController } from './suppliers.controller';
+import { SuppliersService } from './suppliers.service';
+>>>>>>> 687602f (logica de creacion de proveedores hecha):src/suppliers/suppliers.module.ts
 
 @Module({
+  imports: [
+    MongooseModule.forFeature([{ name: 'Supplier', schema: SupplierSchema }]),
+  ],
   controllers: [SuppliersController],
   providers: [SuppliersService],
 })
