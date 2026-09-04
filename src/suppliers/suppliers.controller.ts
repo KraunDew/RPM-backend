@@ -8,7 +8,15 @@
  *   - Rutas disponibles: POST /suppliers (crear proveedor)
  */
 
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { SupplierDto } from './dto/supplier.dto';
 import { CreateSupplierDto } from './dto/supplierCreate.dto';
 import { SuppliersService } from './suppliers.service';
@@ -35,5 +43,10 @@ export class SuppliersController {
   @Patch('/:id')
   updateSupplier(@Param('id') id: string, @Body() supplierData: SupplierDto) {
     return this.suppliersService.updateSupplier(id, supplierData);
+  }
+
+  @Delete('/:id')
+  deleteSupplier(@Param('id') id: string) {
+    return this.suppliersService.deleteSupplier(id);
   }
 }

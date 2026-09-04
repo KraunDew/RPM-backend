@@ -55,4 +55,20 @@ export class SuppliersService {
       console.log(`Error al actualizar el proveedor: ${error}`);
     }
   }
+
+  async deleteSupplier(id: string) {
+    try {
+      const supplierDeleted = await this.supplierModel.findByIdAndDelete(id);
+
+      if (!supplierDeleted) {
+        return new HttpException('Supplier Not Found', HttpStatus.NOT_FOUND);
+      }
+      return new HttpException(
+        'Supplier Deleted Succesfully',
+        HttpStatus.ACCEPTED,
+      );
+    } catch (error) {
+      console.log('Error al borrar el proveedor:', error);
+    }
+  }
 }
