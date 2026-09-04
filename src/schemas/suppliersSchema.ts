@@ -36,7 +36,7 @@ export class Supplier {
     type: Address,
     required: true,
   })
-  addres!: Address;
+  address!: Address;
 
   @Prop({
     type: [Product],
