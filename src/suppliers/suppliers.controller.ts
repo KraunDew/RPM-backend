@@ -8,13 +8,19 @@
  *   - Rutas disponibles: POST /suppliers (crear proveedor)
  */
 
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { SupplierDto } from './dto/supplier.dto';
+import { CreateSupplierDto } from './dto/supplierCreate.dto';
 import { SuppliersService } from './suppliers.service';
 
 @Controller('/suppliers')
 export class SuppliersController {
   constructor(private suppliersService: SuppliersService) {}
+
+  @Get()
+  getAllSuppliers() {
+    return this.suppliersService.getAllSuppliers();
+  }
 
   @Get('/:id')
   getSupplier(@Param('id') id: string) {
@@ -22,7 +28,12 @@ export class SuppliersController {
   }
 
   @Post()
-  createSupplier(@Body() supplierData: SupplierDto) {
+  createSupplier(@Body() supplierData: CreateSupplierDto) {
     return this.suppliersService.createSupplier(supplierData);
+  }
+
+  @Patch('/:id')
+  updateSupplier(@Param('id') id: string, @Body() supplierData: SupplierDto) {
+    return this.suppliersService.updateSupplier(id, supplierData);
   }
 }
