@@ -28,7 +28,7 @@ export class User {
   @Prop({ type: String })
   phone?: string;
 
-  @Prop({ type: String, unique: true })
+  @Prop({ type: String, unique: true, sparse: true })
   rut?: string;
 
   @Prop({ type: Address })
