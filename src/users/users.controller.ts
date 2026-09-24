@@ -17,12 +17,20 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
   Post,
+  Req,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserDto } from './dto/user.dto';
+import { JwtGuard } from './guards/jwt.guard';
+import { LocalGuard } from './guards/local.guard';
 import { usersService } from './users.service';
 
 @Controller('/users')
@@ -35,14 +43,46 @@ export class usersController {
   }
 
   @Post('/register')
-  createUser(@Body() createUser: CreateUserDto) {
+  async createUser(
+    @Body() createUser: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     // Hacemos que el Body / formulario se evalue / compare con el Dto, evitando valores o tipos no deseado
-    return this.usersService.createUser(createUser); // le damos los valores obtenidos en el Body / Formulario
+    const userCreated = await this.usersService.createUser(createUser); // le damos los valores obtenidos en el Body / Formulario
+
+    if (!userCreated) {
+      throw new HttpException('Error to register', HttpStatus.CONFLICT);
+    }
+
+    const { token, info } = userCreated;
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    });
+    return info;
   }
 
   @Post('/login')
-  loginUser(@Body() user: UserDto) {
-    return this.usersService.loginUser(user.email!, user.password!);
+  @UseGuards(LocalGuard)
+  loginUser(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const user = req.user as { token?: string; info?: any };
+    res.cookie('token', user.token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+    });
+    return user.info;
+  }
+
+  @Post('/logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    console.log('Borrando cookie');
+    res.clearCookie('token');
+    console.log('cookie Borrada');
+    return { message: 'Sesion Cerrada exitosamente' };
   }
 
   @Patch('/:id') // Creamos un parametro llamado id
@@ -52,6 +92,7 @@ export class usersController {
   }
 
   @Delete()
+  @UseGuards(JwtGuard)
   deleteUsers() {
     return this.usersService.deleteUsers();
   }

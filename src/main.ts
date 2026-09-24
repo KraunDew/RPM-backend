@@ -15,14 +15,16 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  app.enableCors({
+    origin: 'http://localhost:4000',
+    credentials: true,
+  }); // Habilita el llamado de la API desde cualquier host.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, //bloquea la plantilla de los DTO
     }),
   );
 
-  app.enableCors(); // Habilita el llamado de la API desde cualquier host.
   await app.listen(process.env.PORT ?? 3000); //Se abre en un puerto del .ENV o por defecto en 3000
 }
 

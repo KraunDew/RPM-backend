@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * ARCHIVO: users.service.ts
  * DESCRIPCIÓN: Servicio que contiene la lógica de negocio para usuarios.
@@ -13,6 +14,7 @@
  */
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import argon2 from 'argon2';
 import { Model } from 'mongoose';
@@ -22,7 +24,10 @@ import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class usersService {
-  constructor(@InjectModel('User') private userModel: Model<User>) {} //Llamamos al modelo Usuario
+  constructor(
+    @InjectModel('User') private userModel: Model<User>,
+    private jwtService: JwtService,
+  ) {} //Llamamos al MongoDB -> documento -> Usuario
 
   getAllUsers() {
     return this.userModel.find(); //Devuelve todos los usuarios
@@ -41,32 +46,39 @@ export class usersService {
         email: newUser.email,
       }); // buscamos si el email esta en uso
       if (existingUser) {
-        throw new HttpException('Email already in use', HttpStatus.CONFLICT); // si esta en uso le prohibimos la creación con ese correo
+        return null;
       }
 
       const createdUser = new this.userModel(newUser); //Guarda un Schema de usuario validado por el Dto
-
       await createdUser.save(); // El Schema se guarda en la base de datos
-      return createdUser.id; // Devolvemos el id del usuario creado
+
+      return await this.loginUser(user.email, user.password);
     } catch (error) {
       console.log(`Error creando usuario: ${error}`);
+      throw error;
     }
   }
 
-  async loginUser(email: string, password: string) {
-    const user = await this.userModel.findOne({ email: email }); // Buscamos el usuario
+  async loginUser(email: string, pass: string) {
+    const user = await this.userModel.findOne({ email }).lean(); // Buscamos el usuario
 
     if (!user) {
-      return new HttpException('Invalid Credentials', HttpStatus.BAD_REQUEST); // Si no se encuntra le decimos credenciales invalidas
+      return null; // Si no se encuntra le decimos credenciales invalidas
     }
 
-    const isValid = await argon2.verify(password, user.password); // validamos la cotraseña con la de la DB
+    const isValid = await argon2.verify(user.password, pass); // validamos la cotraseña con la de la DB
 
     if (!isValid) {
-      return new HttpException('Invalid Credentials', HttpStatus.BAD_REQUEST); // Si no coincide le devolvemos credenciales invalidas
+      return null; // Si no coincide le devolvemos credenciales invalidas
     }
 
-    return new HttpException('Login Succesfully', HttpStatus.OK); // Si pasa todo, le decimos Inicio de Sesion correcto
+    const token = this.jwtService.sign({
+      id: user._id,
+      email: user.email,
+    });
+    const { password, ...info } = user;
+
+    return { token, info };
   }
 
   async updateUser(id: string, updateUser: UserDto) {
