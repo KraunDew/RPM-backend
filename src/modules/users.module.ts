@@ -12,11 +12,19 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from 'src/prisma/prisma.module';
+<<<<<<< HEAD:src/modules/users.module.ts
 import { usersController } from '../controllers/users.controller';
 import { JwtGuard } from '../guards/jwt.guard';
 import { usersService } from '../services/users.service';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { LocalStrategy } from '../strategies/local.strategy';
+=======
+import { JwtGuard } from './guards/jwt.guard';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+import { usersController } from './users.controller';
+import { usersService } from './users.service';
+>>>>>>> 44fe590 (Update of database, change to Postgres):src/users/users.module.ts
 
 @Module({
   imports: [
