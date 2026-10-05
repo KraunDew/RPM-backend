@@ -10,9 +10,8 @@
 
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
-import { UserSchema } from 'src/schemas/userSchema';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { JwtGuard } from './guards/jwt.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -21,7 +20,7 @@ import { usersService } from './users.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    PrismaModule,
     PassportModule.register({
       defaultStrategy: 'jwt',
       session: false,

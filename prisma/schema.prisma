@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id_user      String    @id @default(cuid())
+  email        String    @unique
+  phone_number String?
+  firstName    String
+  lastName     String
+  password     String
+  birthDate    DateTime? @db.Date
+  address      Address[]
+  orders       Order[]
+}
+
+model Supplier {
+  id_supplier  String    @id @default(cuid())
+  name         String    @unique
+  email        String    @unique
+  phone_number String    @unique
+  address      Address[]
+  products     Product[]
+}
+
+model Address {
+  id_address   String  @id @default(cuid())
+  street       String
+  house_number String
+  department   String?
+  block        String?
+  comune       String
+  region       String
+  reference    String?
+
+  id_supplier String?
+  id_user     String?
+
+  user     User?     @relation(fields: [id_user], references: [id_user])
+  supplier Supplier? @relation(fields: [id_supplier], references: [id_supplier])
+}
+
+model Category {
+  id_category String    @id @default(cuid())
+  name        String
+  description String?
+  products    Product[]
+}
+
+model Brand {
+  id_brand       String    @id @default(cuid())
+  name           String
+  country_origin String?
+  products       Product[]
+}
+
+model Product {
+  id_product  String @id @default(cuid())
+  id_supplier String
+  id_category String
+  id_brand    String
+
+  sku         String   @unique
+  name        String
+  model       String
+  material    String?
+  weight      Decimal? @db.Decimal(10, 3)
+  price       Int
+  description String?
+  stock       Int
+
+  supplier     Supplier      @relation(fields: [id_supplier], references: [id_supplier])
+  category     Category      @relation(fields: [id_category], references: [id_category])
+  brand        Brand         @relation(fields: [id_brand], references: [id_brand])
+  detailOrders DetailOrder[]
+}
+
+model Order {
+  id_order String   @id @default(cuid())
+  id_user  String
+  date     DateTime @default(now())
+
+  user         User          @relation(fields: [id_user], references: [id_user])
+  detailOrders DetailOrder[]
+}
+
+model DetailOrder {
+  id_detail  String @id @default(cuid())
+  id_order   String
+  id_product String
+  amount     Int
+  unit_price Int
+
+  order   Order   @relation(fields: [id_order], references: [id_order])
+  product Product @relation(fields: [id_product], references: [id_product])
+}

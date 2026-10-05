@@ -15,7 +15,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -27,9 +26,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { CreateUserDto } from './dto/createUser.dto';
-import { UserDto } from './dto/user.dto';
-import { JwtGuard } from './guards/jwt.guard';
+import { Prisma } from 'generated/prisma/client';
 import { LocalGuard } from './guards/local.guard';
 import { usersService } from './users.service';
 
@@ -44,7 +41,7 @@ export class usersController {
 
   @Post('/register')
   async createUser(
-    @Body() createUser: CreateUserDto,
+    @Body() createUser: Prisma.UserCreateInput,
     @Res({ passthrough: true }) res: Response,
   ) {
     // Hacemos que el Body / formulario se evalue / compare con el Dto, evitando valores o tipos no deseado
@@ -58,10 +55,10 @@ export class usersController {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: false, // porque estamos en local host
+      sameSite: 'lax', // ya que trabajamos en diferentes puertos
     });
-    return info;
+    return { messaage: 'Cuenta creada', info };
   }
 
   @Post('/login')
@@ -74,26 +71,18 @@ export class usersController {
       sameSite: 'lax',
       path: '/',
     });
-    return user.info;
+    return { message: 'Sesión iniciada', id: user.info };
   }
 
   @Post('/logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    console.log('Borrando cookie');
     res.clearCookie('token');
-    console.log('cookie Borrada');
-    return { message: 'Sesion Cerrada exitosamente' };
+    return { message: 'Sesión cerrada' };
   }
 
   @Patch('/:id') // Creamos un parametro llamado id
-  updateUser(@Param('id') id: string, @Body() updateUser: UserDto) {
+  updateUser(@Param('id') id: string, @Body() data: Prisma.UserUpdateInput) {
     // Obtenemos el valor del parametro id, y lo que tiene el body / formulario
-    return this.usersService.updateUser(id, updateUser); // Y se lo pasamos a la funcion para actualizar el usuario
-  }
-
-  @Delete()
-  @UseGuards(JwtGuard)
-  deleteUsers() {
-    return this.usersService.deleteUsers();
+    return this.usersService.updateUser(id, data); // Y se lo pasamos a la funcion para actualizar el usuario
   }
 }
