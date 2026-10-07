@@ -17,9 +17,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { SupplierDto } from './dto/supplier.dto';
-import { CreateSupplierDto } from './dto/supplierCreate.dto';
-import { SuppliersService } from './suppliers.service';
+import { SuppliersService } from '../services/suppliers.service';
 
 @Controller('/suppliers')
 export class SuppliersController {
@@ -36,12 +34,12 @@ export class SuppliersController {
   }
 
   @Post()
-  createSupplier(@Body() supplierData: CreateSupplierDto) {
+  createSupplier(@Body() supplierData: any) {
     return this.suppliersService.createSupplier(supplierData);
   }
 
   @Patch('/:id')
-  updateSupplier(@Param('id') id: string, @Body() supplierData: SupplierDto) {
+  updateSupplier(@Param('id') id: string, @Body() supplierData: any) {
     return this.suppliersService.updateSupplier(id, supplierData);
   }
 
