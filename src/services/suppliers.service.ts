@@ -8,67 +8,29 @@
  *   - Es utilizado por el controlador para procesar las solicitudes HTTP
  */
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Supplier } from 'src/schemas/suppliersSchema';
-import { SupplierDto } from './dto/supplier.dto';
-import { CreateSupplierDto } from './dto/supplierCreate.dto';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class SuppliersService {
-  constructor(
-    @InjectModel('Supplier') private supplierModel: Model<Supplier>,
-  ) {}
+  constructor() {}
 
   getAllSuppliers() {
-    return this.supplierModel.find();
+    return true;
   }
 
   getSupplier(id: string) {
-    return this.supplierModel.findById(id);
+    return id;
   }
 
-  async createSupplier(supplierData: CreateSupplierDto) {
-    try {
-      const createdSupplier = new this.supplierModel(supplierData);
-      await createdSupplier.save();
-      return createdSupplier;
-    } catch (error) {
-      console.log('Error al crear proveedor:', error);
-    }
+  createSupplier(supplierData: any) {
+    return supplierData;
   }
 
-  async updateSupplier(id: string, supplierData: SupplierDto) {
-    try {
-      const updatedSupplier = await this.supplierModel.findByIdAndUpdate(
-        id,
-        { $set: supplierData },
-        { new: true, runValidators: true },
-      );
-
-      if (!updatedSupplier) {
-        return new HttpException('Supplier Not Found', HttpStatus.NOT_FOUND);
-      }
-      return new HttpException('Supplier Updated', HttpStatus.ACCEPTED);
-    } catch (error) {
-      console.log(`Error al actualizar el proveedor: ${error}`);
-    }
+  updateSupplier(id: string, supplierData: any) {
+    return { id, supplierData };
   }
 
-  async deleteSupplier(id: string) {
-    try {
-      const supplierDeleted = await this.supplierModel.findByIdAndDelete(id);
-
-      if (!supplierDeleted) {
-        return new HttpException('Supplier Not Found', HttpStatus.NOT_FOUND);
-      }
-      return new HttpException(
-        'Supplier Deleted Succesfully',
-        HttpStatus.ACCEPTED,
-      );
-    } catch (error) {
-      console.log('Error al borrar el proveedor:', error);
-    }
+  deleteSupplier(id: string) {
+    return id;
   }
 }
