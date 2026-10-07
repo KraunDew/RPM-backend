@@ -27,6 +27,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Prisma } from 'generated/prisma/client';
+<<<<<<< HEAD
 <<<<<<< HEAD:src/controllers/users.controller.ts
 import { LocalGuard } from '../guards/local.guard';
 import { usersService } from '../services/users.service';
@@ -34,6 +35,10 @@ import { usersService } from '../services/users.service';
 import { LocalGuard } from './guards/local.guard';
 import { usersService } from './users.service';
 >>>>>>> 44fe590 (Update of database, change to Postgres):src/users/users.controller.ts
+=======
+import { LocalGuard } from '../guards/local.guard';
+import { usersService } from '../services/users.service';
+>>>>>>> 2763678 (ruta - controlador - modelo - vista)
 
 @Controller('/users')
 export class usersController {
@@ -76,11 +81,15 @@ export class usersController {
       sameSite: 'lax',
       path: '/',
     });
+<<<<<<< HEAD
 <<<<<<< HEAD:src/controllers/users.controller.ts
     return { message: 'Sesión iniciada', info: user.info };
 =======
     return { message: 'Sesión iniciada', id: user.info };
 >>>>>>> 44fe590 (Update of database, change to Postgres):src/users/users.controller.ts
+=======
+    return { message: 'Sesión iniciada', info: user.info };
+>>>>>>> 2763678 (ruta - controlador - modelo - vista)
   }
 
   @Post('/logout')
