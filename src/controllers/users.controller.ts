@@ -27,8 +27,8 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Prisma } from 'generated/prisma/client';
-import { LocalGuard } from './guards/local.guard';
-import { usersService } from './users.service';
+import { LocalGuard } from '../guards/local.guard';
+import { usersService } from '../services/users.service';
 
 @Controller('/users')
 export class usersController {
@@ -71,7 +71,7 @@ export class usersController {
       sameSite: 'lax',
       path: '/',
     });
-    return { message: 'Sesión iniciada', id: user.info };
+    return { message: 'Sesión iniciada', info: user.info };
   }
 
   @Post('/logout')

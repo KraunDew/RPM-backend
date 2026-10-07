@@ -16,7 +16,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: 'http://localhost:4000',
+    origin: '*',
     credentials: true,
   }); // Habilita el llamado de la API desde cualquier host.
   app.useGlobalPipes(

@@ -9,7 +9,7 @@
 
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { SupplierModule } from './suppliers/suppliers.module';
+import { SupplierModule } from './modules/suppliers.module';
 import { UsersModule } from './users/users.module';
 
 @Module({

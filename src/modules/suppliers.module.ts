@@ -8,8 +8,8 @@
  */
 
 import { Module } from '@nestjs/common';
-import { SuppliersController } from './suppliers.controller';
-import { SuppliersService } from './suppliers.service';
+import { SuppliersController } from '../controllers/suppliers.controller';
+import { SuppliersService } from '../services/suppliers.service';
 
 @Module({
   controllers: [SuppliersController],
