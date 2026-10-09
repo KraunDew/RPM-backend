@@ -9,6 +9,10 @@
 
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BrandModule } from './modules/brands.module';
+import { CategoriesModule } from './modules/categories.module';
+import { IAModule } from './modules/ia.module';
+import { ProductsModule } from './modules/products.module';
 import { SupplierModule } from './modules/suppliers.module';
 import { UsersModule } from './modules/users.module';
 
@@ -17,6 +21,10 @@ import { UsersModule } from './modules/users.module';
     MongooseModule.forRoot(process.env.URL_MONGOODB!), //Busca la URL en el .env para conectarse a la BD
     UsersModule, //Importamos y usamos rutas y funciones de User
     SupplierModule, // Lo mismo con los proveedores
+    CategoriesModule,
+    BrandModule,
+    ProductsModule,
+    IAModule,
   ],
 })
 export class AppModule {}

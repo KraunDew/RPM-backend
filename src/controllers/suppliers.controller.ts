@@ -13,10 +13,12 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
 } from '@nestjs/common';
+import type { Prisma } from 'generated/prisma/client';
 import { SuppliersService } from '../services/suppliers.service';
 
 @Controller('/suppliers')
@@ -29,22 +31,34 @@ export class SuppliersController {
   }
 
   @Get('/:id')
-  getSupplier(@Param('id') id: string) {
-    return this.suppliersService.getSupplier(id);
+  async getSupplier(@Param('id') id: string) {
+    const supplier = await this.suppliersService.getSupplier(id);
+    if (!supplier) throw new NotFoundException('Supplier not found');
+    return supplier;
   }
 
   @Post()
-  createSupplier(@Body() supplierData: any) {
+  createSupplier(@Body() supplierData: Prisma.SupplierCreateInput) {
     return this.suppliersService.createSupplier(supplierData);
   }
 
   @Patch('/:id')
-  updateSupplier(@Param('id') id: string, @Body() supplierData: any) {
-    return this.suppliersService.updateSupplier(id, supplierData);
+  async updateSupplier(
+    @Param('id') id: string,
+    @Body() supplierData: Prisma.SupplierUpdateInput,
+  ) {
+    const supplier = await this.suppliersService.updateSupplier(
+      id,
+      supplierData,
+    );
+    if (!supplier) throw new NotFoundException('Supplier not found');
+    return supplier;
   }
 
   @Delete('/:id')
-  deleteSupplier(@Param('id') id: string) {
-    return this.suppliersService.deleteSupplier(id);
+  async deleteSupplier(@Param('id') id: string) {
+    const supplier = await this.suppliersService.deleteSupplier(id);
+    if (!supplier) throw new NotFoundException('Supplier not found');
+    return supplier;
   }
 }

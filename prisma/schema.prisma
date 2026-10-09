@@ -48,14 +48,14 @@ model Address {
 
 model Category {
   id_category String    @id @default(cuid())
-  name        String
+  name        String    @unique
   description String?
   products    Product[]
 }
 
 model Brand {
   id_brand       String    @id @default(cuid())
-  name           String
+  name           String    @unique
   country_origin String?
   products       Product[]
 }
@@ -74,6 +74,8 @@ model Product {
   price       Int
   description String?
   stock       Int
+
+  embedding Unsupported("vector")?
 
   supplier     Supplier      @relation(fields: [id_supplier], references: [id_supplier])
   category     Category      @relation(fields: [id_category], references: [id_category])

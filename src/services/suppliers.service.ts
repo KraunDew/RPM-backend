@@ -9,28 +9,66 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { Prisma } from 'generated/prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class SuppliersService {
-  constructor() {}
+  constructor(private prisma: PrismaService) {}
 
   getAllSuppliers() {
-    return true;
+    return this.prisma.supplier.findMany();
   }
 
-  getSupplier(id: string) {
-    return id;
+  async getSupplier(id: string) {
+    const supplier = await this.prisma.supplier.findUnique({
+      where: { id_supplier: id },
+      include: {
+        address: true,
+        products: true,
+      },
+    });
+
+    if (!supplier) {
+      return null;
+    }
+
+    return supplier;
   }
 
-  createSupplier(supplierData: any) {
-    return supplierData;
+  async createSupplier(data: Prisma.SupplierCreateInput) {
+    return await this.prisma.supplier.create({
+      data,
+      include: { address: true },
+    });
   }
 
-  updateSupplier(id: string, supplierData: any) {
-    return { id, supplierData };
+  async updateSupplier(id: string, data: Prisma.SupplierUpdateInput) {
+    const supplier = await this.prisma.supplier.findUnique({
+      where: { id_supplier: id },
+    });
+
+    if (!supplier) {
+      return null;
+    }
+
+    return await this.prisma.supplier.update({
+      where: { id_supplier: id },
+      data,
+    });
   }
 
-  deleteSupplier(id: string) {
-    return id;
+  async deleteSupplier(id: string) {
+    const supplier = await this.prisma.supplier.findUnique({
+      where: { id_supplier: id },
+    });
+
+    if (!supplier) {
+      return null;
+    }
+
+    return this.prisma.supplier.delete({
+      where: { id_supplier: id },
+    });
   }
 }
