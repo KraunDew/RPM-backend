@@ -15,6 +15,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -23,10 +24,12 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { Prisma } from 'generated/prisma/client';
+import { JwtGuard } from 'src/guards/jwt.guard';
 import { LocalGuard } from '../guards/local.guard';
 import { usersService } from '../services/users.service';
 
@@ -37,6 +40,21 @@ export class usersController {
   @Get() // Metodo de llamado en Http
   getAllUsers() {
     return this.usersService.getAllUsers(); // Llamamos a la funcion creada en el servicio
+  }
+  @Get('/me')
+  @UseGuards(JwtGuard)
+  async getMe(
+    @Req() req: { user?: { id_user?: string; id?: string; sub?: string } },
+  ) {
+    const userId = req.user?.id_user ?? req.user?.id ?? req.user?.sub;
+
+    if (!userId) {
+      throw new UnauthorizedException(
+        'No se pudo identificar al usuario autenticado.',
+      );
+    }
+
+    return await this.usersService.getAuthenticatedUser(userId);
   }
 
   @Post('/register')
@@ -84,5 +102,11 @@ export class usersController {
   updateUser(@Param('id') id: string, @Body() data: Prisma.UserUpdateInput) {
     // Obtenemos el valor del parametro id, y lo que tiene el body / formulario
     return this.usersService.updateUser(id, data); // Y se lo pasamos a la funcion para actualizar el usuario
+  }
+
+  @Delete('/:id')
+  async deleteUser(@Param('id') id: string) {
+    await this.usersService.deleteUser(id);
+    return { message: 'Usuario eliminado' };
   }
 }

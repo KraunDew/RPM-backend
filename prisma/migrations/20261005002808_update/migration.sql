@@ -9,6 +9,7 @@
 
 */
 -- AlterTable
+CREATE EXTENSION IF NOT EXISTS vector;
 ALTER TABLE "DetailOrder" DROP COLUMN "price_unity",
 ADD COLUMN     "unit_price" INTEGER NOT NULL;
 

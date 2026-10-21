@@ -13,7 +13,12 @@
  *     - deleteUsers(): Elimina usuarios
  */
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
 import { Prisma, User } from 'generated/prisma/client';
@@ -30,27 +35,71 @@ export class usersService {
     return this.prisma.user.findMany(); //Devuelve todos los usuarios
   }
 
+  async getAuthenticatedUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id_user: userId,
+      },
+      select: {
+        id_user: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('El usuario autenticado ya no existe.');
+    }
+
+    return user;
+  }
+
   async createUser(user: Prisma.UserCreateInput) {
     try {
-      const password = await argon2.hash(user.password); // hasheo de la contraseña
-
-      const newUser = {
-        ...user, // copiamos el usuario
-        password, // le cambiamos el parametro de contraseña por la haseada
-      };
-
       const existingUser = await this.prisma.user.findUnique({
         where: { email: user.email },
+        select: { id_user: true },
       });
+
       if (existingUser) {
-        return null;
+        throw new HttpException(
+          'Este correo electrónico ya está registrado.',
+          HttpStatus.CONFLICT,
+        );
       }
 
-      await this.prisma.user.create({ data: newUser });
+      const password = await argon2.hash(user.password);
+      const birthDate = new Date(user.birthDate as string);
+
+      const newUser = {
+        ...user,
+        password,
+        birthDate,
+      };
+
+      await this.prisma.user.create({
+        data: newUser,
+      });
 
       return await this.loginUser(user.email, user.password);
     } catch (error) {
-      console.log(`Error creando usuario: ${error}`);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new HttpException(
+          'Este correo electrónico ya está registrado.',
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      console.error('Error creando usuario:', error);
       throw error;
     }
   }
@@ -71,8 +120,9 @@ export class usersService {
     const token = this.jwtService.sign({
       id: user.id_user,
       email: user.email,
+      role: user.role,
     });
-    const { password, id_user, ...info } = user;
+    const { email: userEmail, phone_number, password, id_user, ...info } = user;
 
     return { token, info };
   }
@@ -90,5 +140,14 @@ export class usersService {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND); // En caso de que no encuentre algun usuario con esa ID tira un 404 Not Found
     }
     return new HttpException('User Updated', HttpStatus.ACCEPTED); // Devolvemos usuario actualizado y un codigo 202(Accepted)
+  }
+
+  async deleteUser(id_user: string) {
+    const deletedUser = await this.prisma.user.deleteMany({
+      where: { id_user },
+    });
+    if (!deletedUser) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
   }
 }
