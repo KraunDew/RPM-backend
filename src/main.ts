@@ -12,7 +12,7 @@ async function bootstrap() {
 
   // Permite peticiones desde tu frontend.
   app.enableCors({
-    origin: 'http://localhost:4000',
+    origin: 'http://rpm-proyect.vercel.app',
     credentials: true,
   });
 
