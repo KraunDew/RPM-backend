@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -663,7 +664,8 @@ export class IAService {
   }
 
   // Coordina la clasificación, búsqueda y generación de respuesta.
-  async askAssistant(message: string) {
+
+  async askAssistant(message: string, userId: string, conversationId?: string) {
     return this.measure('Tiempo total del asistente', async () => {
       const question = message.trim();
 
@@ -672,65 +674,224 @@ export class IAService {
           intent: 'unknown' as Intent,
           message: 'Escribe una consulta para que pueda ayudarte.',
           products: [] as SimilarProduct[],
+          conversationId: conversationId ?? null,
         };
       }
 
+      // 1. Verificar que el usuario exista.
+      const user = await this.prisma.user.findUnique({
+        where: { id_user: userId },
+        select: { id_user: true },
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado.');
+      }
+
+      // 2. Recuperar una conversación existente o crear una nueva.
+      let conversation;
+
+      if (conversationId) {
+        conversation = await this.prisma.aIConversation.findFirst({
+          where: {
+            id_conversation: conversationId,
+            id_user: userId,
+          },
+          select: {
+            id_conversation: true,
+          },
+        });
+
+        if (!conversation) {
+          throw new NotFoundException(
+            'La conversación no existe o no te pertenece.',
+          );
+        }
+      } else {
+        conversation = await this.prisma.aIConversation.create({
+          data: {
+            id_user: userId,
+            title: question.slice(0, 80),
+          },
+          select: {
+            id_conversation: true,
+          },
+        });
+      }
+
+      const currentConversationId = conversation.id_conversation;
+
+      // 3. Recuperar los últimos mensajes anteriores.
+      const previousMessages = await this.prisma.aIMessage.findMany({
+        where: {
+          id_conversation: currentConversationId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 12,
+        select: {
+          role: true,
+          content: true,
+        },
+      });
+
+      const history = previousMessages.reverse();
+
+      // 4. Recuperar los recuerdos persistentes del usuario.
+      const memories = await this.prisma.aIUserMemory.findMany({
+        where: {
+          id_user: userId,
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+        take: 20,
+        select: {
+          key: true,
+          value: true,
+        },
+      });
+
+      const memoryContext = memories.length
+        ? memories
+            .map((memory) => `- ${memory.key}: ${memory.value}`)
+            .join('\n')
+        : 'Todavía no hay recuerdos guardados.';
+
+      // 5. Guardar el mensaje actual del usuario.
+      await this.prisma.aIMessage.create({
+        data: {
+          id_conversation: currentConversationId,
+          role: 'USER',
+          content: question,
+        },
+      });
+
+      // 6. Incorporar el historial y los recuerdos al contexto.
+      const contextualQuestion = `
+RECUERDOS DEL USUARIO:
+${memoryContext}
+
+HISTORIAL RECIENTE DE LA CONVERSACIÓN:
+${
+  history.length
+    ? history
+        .map(
+          (item) =>
+            `${item.role === 'USER' ? 'Usuario' : 'Asistente'}: ${item.content}`,
+        )
+        .join('\n')
+    : 'Esta es la primera interacción de la conversación.'
+}
+
+MENSAJE ACTUAL DEL USUARIO:
+${question}
+`.trim();
+
+      // 7. Clasificar usando el contexto para entender referencias anteriores.
       const intent = await this.measure('Clasificación de intención', () =>
-        this.classifyIntent(question),
+        this.classifyIntent(contextualQuestion),
       );
 
+      let responseMessage: string;
+      let products: SimilarProduct[] = [];
+
+      // 8. Ejecutar el flujo correspondiente sin cambiar la búsqueda vectorial.
       switch (intent) {
         case 'product_search':
         case 'product_question':
         case 'recommendation': {
-          const products = await this.measure(
+          const foundProducts = await this.measure(
             'Búsqueda de productos completa',
             () => this.searchSimilarProducts(question),
           );
 
-          if (products === null) {
-            return {
-              intent,
-              message:
-                'No pude realizar la búsqueda en este momento. Intenta nuevamente.',
-              products: [] as SimilarProduct[],
-            };
+          if (foundProducts === null) {
+            responseMessage =
+              'No pude realizar la búsqueda en este momento. Intenta nuevamente.';
+            break;
           }
 
-          const responseMessage = await this.measure(
+          products = foundProducts;
+
+          responseMessage = await this.measure(
             'Generación de respuesta de productos',
-            () => this.generateProductResponse(question, products),
+            () =>
+              this.generateProductResponse(contextualQuestion, foundProducts),
           );
 
-          return {
-            intent,
-            message: responseMessage,
-            products,
-          };
+          break;
         }
 
         case 'store_question':
         case 'general_chat': {
-          const response = await this.measure(
+          responseMessage = await this.measure(
             'Generación de respuesta de chat',
-            () => this.generateChatResponse(question, intent),
+            () => this.generateChatResponse(contextualQuestion, intent),
           );
 
-          return {
-            intent,
-            message: response,
-            products: [] as SimilarProduct[],
-          };
+          break;
         }
 
-        default:
-          return {
-            intent: 'unknown' as Intent,
-            message:
-              'No estoy seguro de lo que necesitas. Puedes contarme qué repuesto o vehículo tienes en mente.',
-            products: [] as SimilarProduct[],
-          };
+        default: {
+          responseMessage =
+            'No estoy seguro de lo que necesitas. Puedes contarme qué repuesto o vehículo tienes en mente.';
+        }
       }
+
+      // 9. Guardar la respuesta para recuperarla en la próxima interacción.
+      await this.prisma.aIMessage.create({
+        data: {
+          id_conversation: currentConversationId,
+          role: 'ASSISTANT',
+          content: responseMessage,
+        },
+      });
+
+      // 10. Actualizar la fecha de actividad de la conversación.
+      await this.prisma.aIConversation.update({
+        where: {
+          id_conversation: currentConversationId,
+        },
+        data: {
+          updatedAt: new Date(),
+        },
+      });
+
+      // 11. Extraer posibles recuerdos sencillos de preferencias explícitas.
+      // No se guardan diagnósticos ni datos inferidos automáticamente.
+      const preferenceMatch = question.match(
+        /(?:recuerda que|ten en cuenta que|mi auto es|mi vehiculo es|tengo un|tengo una)\s+(.{3,120})/i,
+      );
+
+      if (preferenceMatch) {
+        const value = preferenceMatch[1].trim();
+
+        await this.prisma.aIUserMemory.upsert({
+          where: {
+            id_user_key: {
+              id_user: userId,
+              key: 'preferencia_vehiculo',
+            },
+          },
+          create: {
+            id_user: userId,
+            key: 'preferencia_vehiculo',
+            value,
+          },
+          update: {
+            value,
+          },
+        });
+      }
+
+      return {
+        intent,
+        message: responseMessage,
+        products,
+        conversationId: currentConversationId,
+      };
     });
   }
 }

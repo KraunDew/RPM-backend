@@ -7,8 +7,10 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
+import { JwtGuard } from 'src/guards/jwt.guard';
 import { BrandService } from 'src/services/brands.service';
 
 @Controller('/brands')
@@ -27,6 +29,7 @@ export class BrandController {
     return brand;
   }
 
+  @UseGuards(JwtGuard)
   @Post()
   async createBrand(@Body() data: Prisma.BrandCreateInput) {
     return await this.brandService.createBrand(data);

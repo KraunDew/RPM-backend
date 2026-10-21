@@ -1,31 +1,28 @@
-/**
- * ARCHIVO: main.ts
- * DESCRIPCIÓN: Punto de entrada de la aplicación NestJS.
- * FUNCIONALIDAD:
- *   - Inicializa la aplicación usando NestFactory
- *   - Configura pipes de validación global para validar DTOs
- *   - Habilita CORS para permitir peticiones desde cualquier origen
- *   - Inicia el servidor en el puerto definido en .env (por defecto 3000)
- */
-
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import 'dotenv/config'; // Hace que los archivos .env se puedan leer en todo el proyecto
+import cookieParser from 'cookie-parser';
+import 'dotenv/config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Permite leer las cookies de las solicitudes.
+  app.use(cookieParser());
+
+  // Permite peticiones desde tu frontend.
   app.enableCors({
-    origin: '*',
+    origin: 'http://localhost:4000',
     credentials: true,
-  }); // Habilita el llamado de la API desde cualquier host.
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, //bloquea la plantilla de los DTO
+      whitelist: true,
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000); //Se abre en un puerto del .ENV o por defecto en 3000
+  await app.listen(process.env.PORT ?? 3000);
 }
 
-bootstrap(); // Se ejecuta el programa
+bootstrap();

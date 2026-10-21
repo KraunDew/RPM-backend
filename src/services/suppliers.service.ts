@@ -1,31 +1,108 @@
 /**
  * ARCHIVO: suppliers.service.ts
  * DESCRIPCIÓN: Servicio que contiene la lógica de negocio para proveedores.
+ *
  * FUNCIONALIDAD:
- *   - Implementa las operaciones relacionadas con proveedores
- *   - Se encarga de crear, actualizar, eliminar y recuperar proveedores
- *   - Interactúa con la base de datos a través de Mongoose
- *   - Es utilizado por el controlador para procesar las solicitudes HTTP
+ * - Crear, actualizar, eliminar y recuperar proveedores.
+ * - Incluir las direcciones relacionadas con cada proveedor.
+ * - Crear la dirección al registrar un proveedor.
+ * - Actualizar la dirección al editar un proveedor.
+ * - Interactuar con PostgreSQL mediante Prisma.
  */
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+type SupplierAddressInput = {
+  street: string;
+  house_number: string;
+  department?: string | null;
+  block?: string | null;
+  comune: string;
+  region: string;
+  reference?: string | null;
+};
+
+type CreateSupplierInput = Omit<Prisma.SupplierCreateInput, 'address'> & {
+  address?: SupplierAddressInput;
+};
+
+type UpdateSupplierInput = Omit<Prisma.SupplierUpdateInput, 'address'> & {
+  address?: SupplierAddressInput;
+};
+
 @Injectable()
 export class SuppliersService {
   constructor(private prisma: PrismaService) {}
 
-  getAllSuppliers() {
-    return this.prisma.supplier.findMany();
+  /**
+   * Obtiene todos los proveedores junto con sus direcciones.
+   */
+  async getAllSuppliers() {
+    return this.prisma.supplier.findMany({
+      include: {
+        address: true,
+      },
+    });
   }
 
+  /**
+   * Obtiene un proveedor por su ID, incluyendo sus direcciones
+   * y productos asociados.
+   */
   async getSupplier(id: string) {
-    const supplier = await this.prisma.supplier.findUnique({
-      where: { id_supplier: id },
+    return this.prisma.supplier.findUnique({
+      where: {
+        id_supplier: id,
+      },
       include: {
         address: true,
         products: true,
+      },
+    });
+  }
+
+  /**
+   * Crea un proveedor y, si se entrega una dirección,
+   * la guarda como registro relacionado en Prisma.
+   */
+  async createSupplier(data: CreateSupplierInput) {
+    const { address, ...supplierData } = data;
+
+    return this.prisma.supplier.create({
+      data: {
+        ...supplierData,
+        ...(address
+          ? {
+              address: {
+                create: address,
+              },
+            }
+          : {}),
+      },
+      include: {
+        address: true,
+      },
+    });
+  }
+
+  /**
+   * Actualiza los datos del proveedor y su dirección.
+   *
+   * Si ya tiene una dirección, actualiza la primera.
+   * Si todavía no tiene ninguna, crea una nueva.
+   * Si no se envía address, conserva las direcciones actuales.
+   */
+  async updateSupplier(id: string, data: UpdateSupplierInput) {
+    const { address, ...supplierData } = data;
+
+    const supplier = await this.prisma.supplier.findUnique({
+      where: {
+        id_supplier: id,
+      },
+      include: {
+        address: true,
       },
     });
 
@@ -33,34 +110,41 @@ export class SuppliersService {
       return null;
     }
 
-    return supplier;
-  }
-
-  async createSupplier(data: Prisma.SupplierCreateInput) {
-    return await this.prisma.supplier.create({
-      data,
-      include: { address: true },
+    return this.prisma.supplier.update({
+      where: {
+        id_supplier: id,
+      },
+      data: {
+        ...supplierData,
+        ...(address
+          ? supplier.address.length > 0
+            ? {
+                address: {
+                  update: {
+                    where: {
+                      id_address: supplier.address[0].id_address,
+                    },
+                    data: address,
+                  },
+                },
+              }
+            : {
+                address: {
+                  create: address,
+                },
+              }
+          : {}),
+      },
+      include: {
+        address: true,
+      },
     });
   }
-
-  async updateSupplier(id: string, data: Prisma.SupplierUpdateInput) {
-    const supplier = await this.prisma.supplier.findUnique({
-      where: { id_supplier: id },
-    });
-
-    if (!supplier) {
-      return null;
-    }
-
-    return await this.prisma.supplier.update({
-      where: { id_supplier: id },
-      data,
-    });
-  }
-
   async deleteSupplier(id: string) {
     const supplier = await this.prisma.supplier.findUnique({
-      where: { id_supplier: id },
+      where: {
+        id_supplier: id,
+      },
     });
 
     if (!supplier) {
@@ -68,7 +152,9 @@ export class SuppliersService {
     }
 
     return this.prisma.supplier.delete({
-      where: { id_supplier: id },
+      where: {
+        id_supplier: id,
+      },
     });
   }
 }

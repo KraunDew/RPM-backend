@@ -15,10 +15,12 @@ import { IAModule } from './modules/ia.module';
 import { ProductsModule } from './modules/products.module';
 import { SupplierModule } from './modules/suppliers.module';
 import { UsersModule } from './modules/users.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
     MongooseModule.forRoot(process.env.URL_MONGOODB!), //Busca la URL en el .env para conectarse a la BD
+    PrismaModule,
     UsersModule, //Importamos y usamos rutas y funciones de User
     SupplierModule, // Lo mismo con los proveedores
     CategoriesModule,

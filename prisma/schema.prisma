@@ -1,3 +1,22 @@
+enum Role {
+  SUPPLIER
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum PaymentMethod {
+  WEBPAY
+  PAYPAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REJECTED
+  CANCELLED
+}
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -9,15 +28,18 @@ datasource db {
 }
 
 model User {
-  id_user      String    @id @default(cuid())
-  email        String    @unique
-  phone_number String?
-  firstName    String
-  lastName     String
-  password     String
-  birthDate    DateTime? @db.Date
-  address      Address[]
-  orders       Order[]
+  id_user        String           @id @default(cuid())
+  email          String           @unique
+  phone_number   String?
+  firstName      String
+  lastName       String
+  password       String
+  birthDate      DateTime?        @db.Date
+  role           Role             @default(USER)
+  address        Address[]
+  orders         Order[]
+  AIConversation AIConversation[]
+  AIUserMemory   AIUserMemory[]
 }
 
 model Supplier {
@@ -25,6 +47,7 @@ model Supplier {
   name         String    @unique
   email        String    @unique
   phone_number String    @unique
+  role         Role      @default(SUPPLIER)
   address      Address[]
   products     Product[]
 }
@@ -84,9 +107,12 @@ model Product {
 }
 
 model Order {
-  id_order String   @id @default(cuid())
+  id_order String        @id @default(cuid())
   id_user  String
-  date     DateTime @default(now())
+  date     DateTime      @default(now())
+  total    Int
+  method   PaymentMethod
+  status   PaymentStatus @default(PENDING)
 
   user         User          @relation(fields: [id_user], references: [id_user])
   detailOrders DetailOrder[]
@@ -101,4 +127,48 @@ model DetailOrder {
 
   order   Order   @relation(fields: [id_order], references: [id_order])
   product Product @relation(fields: [id_product], references: [id_product])
+}
+
+model AIConversation {
+  id_conversation String   @id @default(cuid())
+  id_user         String
+  title           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User        @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  messages AIMessage[]
+
+  @@index([id_user, updatedAt])
+}
+
+model AIMessage {
+  id_message      String        @id @default(cuid())
+  id_conversation String
+  role            AIMessageRole
+  content         String        @db.Text
+  createdAt       DateTime      @default(now())
+
+  conversation AIConversation @relation(fields: [id_conversation], references: [id_conversation], onDelete: Cascade)
+
+  @@index([id_conversation, createdAt])
+}
+
+enum AIMessageRole {
+  USER
+  ASSISTANT
+}
+
+model AIUserMemory {
+  id_memory String   @id @default(cuid())
+  id_user   String
+  key       String
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+
+  @@unique([id_user, key])
+  @@index([id_user])
 }
