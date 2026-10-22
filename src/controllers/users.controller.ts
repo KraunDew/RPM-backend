@@ -73,7 +73,7 @@ export class usersController {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // porque estamos en local host
+      secure: true, // porque estamos en local host
       sameSite: 'none',
     });
     return { messaage: 'Cuenta creada', info };
@@ -85,7 +85,7 @@ export class usersController {
     const user = req.user as { token?: string; info?: any };
     res.cookie('token', user.token, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: 'none',
       path: '/',
     });
