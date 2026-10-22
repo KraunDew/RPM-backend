@@ -74,7 +74,7 @@ export class usersController {
     res.cookie('token', token, {
       httpOnly: true,
       secure: false, // porque estamos en local host
-      sameSite: 'lax', // ya que trabajamos en diferentes puertos
+      sameSite: 'none',
     });
     return { messaage: 'Cuenta creada', info };
   }
@@ -86,7 +86,7 @@ export class usersController {
     res.cookie('token', user.token, {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
     });
     return { message: 'Sesión iniciada', info: user.info };
