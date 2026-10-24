@@ -30,7 +30,11 @@ export class ProductsService {
     });
   }
 
-  async createProduct(data: Prisma.ProductCreateInput) {
+  async createProduct(info: Prisma.ProductCreateInput, photo_path: string) {
+    const data: Prisma.ProductCreateInput = {
+      ...info,
+      photo_path,
+    };
     const product = await this.prisma.product.create({
       data,
       include: this.productRelations,

@@ -88,7 +88,7 @@ model Product {
   id_supplier String
   id_category String
   id_brand    String
-
+  photo_path  String?
   sku         String   @unique
   name        String
   model       String
