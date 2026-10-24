@@ -1,18 +1,19 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import 'dotenv/config';
+import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Permite leer las cookies de las solicitudes.
   app.use(cookieParser());
-
-  // Permite peticiones desde tu frontend.
-
-  // Permite leer las cookies de las solicitudes.
+  app.useStaticAssets(join(process.cwd(), 'public'), {
+    prefix: '/public/',
+  });
   app.use(cookieParser());
 
   // Permite peticiones desde tu frontend.
