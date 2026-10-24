@@ -14,8 +14,6 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'public'), {
     prefix: '/public/',
   });
-  app.use(cookieParser());
-
   // Permite peticiones desde tu frontend.
   app.enableCors({
     origin: ['https://rpm-proyect.vercel.app', 'http://localhost:4000'],

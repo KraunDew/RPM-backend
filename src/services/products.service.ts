@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
+import { unlink } from 'node:fs/promises';
+import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { IAService } from './ia.service';
 
@@ -15,6 +17,47 @@ export class ProductsService {
     brand: true,
     supplier: true,
   } satisfies Prisma.ProductInclude;
+
+  private readonly photosDirectory = resolve(process.cwd(), 'public', 'photos');
+
+  /**
+   * Elimina únicamente archivos que se encuentren dentro
+   * de public/photos. Evita borrar rutas arbitrarias.
+   */
+  private async removePhotoFile(
+    photoPath: string | null | undefined,
+  ): Promise<void> {
+    if (!photoPath) return;
+
+    const absolutePath = isAbsolute(photoPath)
+      ? resolve(photoPath)
+      : resolve(process.cwd(), photoPath);
+
+    const relativePath = relative(this.photosDirectory, absolutePath);
+
+    if (
+      !relativePath ||
+      relativePath === '..' ||
+      relativePath.startsWith(`..${sep}`) ||
+      isAbsolute(relativePath)
+    ) {
+      console.warn(
+        'No se eliminó un archivo fuera de public/photos:',
+        photoPath,
+      );
+      return;
+    }
+
+    try {
+      await unlink(absolutePath);
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+
+      if (code !== 'ENOENT') {
+        console.error('No se pudo eliminar el archivo de imagen:', error);
+      }
+    }
+  }
 
   getAllProducts() {
     return this.prisma.product.findMany({
@@ -35,6 +78,7 @@ export class ProductsService {
       ...info,
       photo_path,
     };
+
     const product = await this.prisma.product.create({
       data,
       include: this.productRelations,
@@ -49,19 +93,74 @@ export class ProductsService {
     return product;
   }
 
-  async updateProduct(id: string, data: Prisma.ProductUpdateInput) {
+  async updateProduct(
+    id: string,
+    data: Prisma.ProductUpdateInput,
+    newPhotoPath?: string,
+    removePhoto = false,
+  ) {
     const existingProduct = await this.prisma.product.findUnique({
       where: { id_product: id },
-      select: { id_product: true },
+      select: {
+        id_product: true,
+        photo_path: true,
+      },
     });
 
-    if (!existingProduct) return null;
+    if (!existingProduct) {
+      // No dejar archivos huérfanos si Multer ya guardó la foto.
+      if (newPhotoPath) {
+        await this.removePhotoFile(newPhotoPath);
+      }
 
-    const product = await this.prisma.product.update({
-      where: { id_product: id },
-      data,
-      include: this.productRelations,
-    });
+      return null;
+    }
+
+    if (newPhotoPath && removePhoto) {
+      await this.removePhotoFile(newPhotoPath);
+
+      throw new Error(
+        'No puedes reemplazar y eliminar la foto en la misma solicitud.',
+      );
+    }
+
+    const updateData: Prisma.ProductUpdateInput = {
+      ...data,
+    };
+
+    if (newPhotoPath) {
+      updateData.photo_path = newPhotoPath;
+    } else if (removePhoto) {
+      updateData.photo_path = null;
+    }
+
+    let product;
+
+    try {
+      product = await this.prisma.product.update({
+        where: { id_product: id },
+        data: updateData,
+        include: this.productRelations,
+      });
+    } catch (error) {
+      // Si falla Prisma, intentar limpiar la nueva imagen subida.
+      if (newPhotoPath) {
+        await this.removePhotoFile(newPhotoPath);
+      }
+
+      throw error;
+    }
+
+    // Borrar la imagen anterior solo después de guardar los cambios.
+    const photoChanged = Boolean(newPhotoPath) || removePhoto;
+
+    if (
+      photoChanged &&
+      existingProduct.photo_path &&
+      existingProduct.photo_path !== newPhotoPath
+    ) {
+      await this.removePhotoFile(existingProduct.photo_path);
+    }
 
     void this.iaService.generateProductEmbedding(id).catch((error: unknown) => {
       console.error('Error generating product embedding:', error);
@@ -77,8 +176,13 @@ export class ProductsService {
 
     if (!existingProduct) return null;
 
-    return this.prisma.product.delete({
+    const product = await this.prisma.product.delete({
       where: { id_product: id },
     });
+
+    // Eliminar la foto asociada después de borrar el producto.
+    await this.removePhotoFile(existingProduct.photo_path);
+
+    return product;
   }
 }
