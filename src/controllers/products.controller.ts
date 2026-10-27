@@ -13,10 +13,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Prisma } from 'generated/prisma/client';
+import { memoryStorage } from 'multer';
 import { ProductsService } from 'src/services/products.service';
 
 const photoUploadOptions = {
-  limits: { fileSize: 8 * 1024 * 1024 },
+  storage: memoryStorage(),
+  limits: {
+    fileSize: 8 * 1024 * 1024,
+  },
   fileFilter: (
     _request: unknown,
     file: Express.Multer.File,
@@ -80,7 +84,7 @@ export class ProductsController {
       );
     }
 
-    return this.productsService.createProduct(data, photo.path);
+    return this.productsService.createProduct(data, photo);
   }
 
   @Patch('/:id')
@@ -93,7 +97,6 @@ export class ProductsController {
   ) {
     let data: Prisma.ProductUpdateInput = {};
 
-    // Acepta tanto JSON normal como multipart/form-data.
     if (rawData) {
       try {
         data = JSON.parse(rawData) as Prisma.ProductUpdateInput;
@@ -116,12 +119,10 @@ export class ProductsController {
       );
     }
 
-    // La gestión del archivo y su campo de base de datos
-    // se delega al servicio.
     const product = await this.productsService.updateProduct(
       id,
       data,
-      photo?.path,
+      photo,
       removePhoto,
     );
 
