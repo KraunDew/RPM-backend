@@ -91,7 +91,7 @@ model Product {
   photo_path  String?
   sku         String   @unique
   name        String
-  model       String
+  model       String?
   material    String?
   weight      Decimal? @db.Decimal(10, 3)
   price       Int
