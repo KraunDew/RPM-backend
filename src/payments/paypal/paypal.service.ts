@@ -1,7 +1,7 @@
 import {
+  BadGatewayException,
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -34,18 +34,36 @@ interface PayPalCaptureResponse {
   }[];
 }
 
+interface PayPalGetOrderResponse {
+  id: string;
+  status: string;
+  purchase_units: {
+    reference_id: string;
+    amount: {
+      currency_code: string;
+      value: string;
+    };
+  }[];
+}
+
 @Injectable()
 export class PaypalService {
   private readonly baseUrl: string;
   private readonly clientId: string;
   private readonly clientSecret: string;
+  private readonly frontendUrl: string;
 
   constructor(private readonly config: ConfigService) {
-    this.baseUrl = this.config.getOrThrow<string>('PAYPAL_BASE_URL');
+    this.baseUrl = this.config
+      .getOrThrow<string>('PAYPAL_BASE_URL')
+      .replace(/\/+$/, '');
 
     this.clientId = this.config.getOrThrow<string>('PAYPAL_CLIENT_ID');
-
     this.clientSecret = this.config.getOrThrow<string>('PAYPAL_CLIENT_SECRET');
+
+    this.frontendUrl = this.config
+      .getOrThrow<string>('FRONTEND_URL')
+      .replace(/\/+$/, '');
   }
 
   private async getAccessToken(): Promise<string> {
@@ -63,12 +81,20 @@ export class PaypalService {
     });
 
     if (!response.ok) {
-      throw new UnauthorizedException('No se pudo autenticar con PayPal');
+      const details = await response.text();
+      console.error('PayPal OAuth error:', details);
+      throw new BadGatewayException(
+        'PayPal no pudo autenticar al servidor de RPM.',
+      );
     }
 
-    const data = (await response.json()) as {
-      access_token: string;
-    };
+    const data = (await response.json()) as { access_token?: string };
+
+    if (!data.access_token) {
+      throw new BadGatewayException(
+        'PayPal no devolvió un token de acceso válido.',
+      );
+    }
 
     return data.access_token;
   }
@@ -98,14 +124,38 @@ export class PaypalService {
             },
           },
         ],
+        payment_source: {
+          paypal: {
+            experience_context: {
+              brand_name: 'RPM Repuestos Automotrices',
+              landing_page: 'LOGIN',
+              user_action: 'PAY_NOW',
+              return_url: `${this.frontendUrl}/carrito?paypal=success`,
+              cancel_url: `${this.frontendUrl}/carrito?paypal=cancel`,
+            },
+          },
+        },
       }),
     });
 
     if (!response.ok) {
-      throw new InternalServerErrorException('PayPal no pudo crear la orden');
+      const details = await response.text();
+      console.error('PayPal create order error:', details);
+      throw new InternalServerErrorException(
+        'PayPal no pudo crear la orden de pago.',
+      );
     }
 
-    return (await response.json()) as PayPalOrderResponse;
+    const data = (await response.json()) as PayPalOrderResponse;
+
+    if (!data.id || !Array.isArray(data.links)) {
+      console.error('PayPal create order returned an invalid response:', data);
+      throw new BadGatewayException(
+        'PayPal devolvió una respuesta incompleta al crear la orden.',
+      );
+    }
+
+    return data;
   }
 
   async captureOrder(paypalOrderId: string): Promise<PayPalCaptureResponse> {
@@ -125,19 +175,23 @@ export class PaypalService {
     );
 
     if (!response.ok) {
+      const details = await response.text();
+      console.error('PayPal capture order error:', details);
       throw new InternalServerErrorException(
-        'No se pudo capturar el pago de PayPal',
+        'No se pudo capturar el pago de PayPal.',
       );
     }
 
     return (await response.json()) as PayPalCaptureResponse;
   }
-  async getOrder(paypalOrderId: string) {
+
+  async getOrder(paypalOrderId: string): Promise<PayPalGetOrderResponse> {
     const token = await this.getAccessToken();
 
     const response = await fetch(
       `${this.baseUrl}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`,
       {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -146,21 +200,13 @@ export class PaypalService {
     );
 
     if (!response.ok) {
+      const details = await response.text();
+      console.error('PayPal get order error:', details);
       throw new InternalServerErrorException(
-        'No se pudo verificar la orden de PayPal',
+        'No se pudo verificar la orden de PayPal.',
       );
     }
 
-    return (await response.json()) as {
-      id: string;
-      status: string;
-      purchase_units: {
-        reference_id: string;
-        amount: {
-          currency_code: string;
-          value: string;
-        };
-      }[];
-    };
+    return (await response.json()) as PayPalGetOrderResponse;
   }
 }
