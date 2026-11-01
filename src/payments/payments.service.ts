@@ -48,89 +48,97 @@ export class PaymentsService {
       );
     }
 
-    const order = await this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({
-        where: { id_user },
-        select: { id_user: true },
-      });
+    const order = await this.prisma.$transaction(
+      async (tx) => {
+        const user = await tx.user.findUnique({
+          where: { id_user },
+          select: { id_user: true },
+        });
 
-      if (!user) {
-        throw new NotFoundException('Usuario no encontrado');
-      }
-
-      const dbProducts = await tx.product.findMany({
-        where: {
-          id_product: { in: ids },
-        },
-        select: {
-          id_product: true,
-          name: true,
-          price: true,
-          stock: true,
-        },
-      });
-
-      if (dbProducts.length !== products.length) {
-        throw new NotFoundException('Uno o más productos no existen');
-      }
-
-      const productMap = new Map(dbProducts.map((p) => [p.id_product, p]));
-
-      let total = 0;
-
-      const details = products.map((item) => {
-        const product = productMap.get(item.id_product)!;
-
-        if (product.stock < item.amount) {
-          throw new BadRequestException(`Stock insuficiente: ${product.name}`);
+        if (!user) {
+          throw new NotFoundException('Usuario no encontrado');
         }
 
-        const subtotal = product.price * item.amount;
-
-        if (!Number.isSafeInteger(subtotal)) {
-          throw new BadRequestException('Subtotal inválido');
-        }
-
-        total += subtotal;
-
-        if (!Number.isSafeInteger(total)) {
-          throw new BadRequestException('Total inválido');
-        }
-
-        return {
-          id_product: item.id_product,
-          amount: item.amount,
-          unit_price: product.price,
-        };
-      });
-
-      if (total <= 0) {
-        throw new BadRequestException('El total debe ser mayor a cero');
-      }
-
-      const usdAmount = (total / rate).toFixed(2);
-
-      if (Number(usdAmount) < 0.01) {
-        throw new BadRequestException(
-          'El importe convertido es inferior al mínimo de PayPal',
-        );
-      }
-
-      return tx.order.create({
-        data: {
-          id_user,
-          method: PaymentMethod.PAYPAL,
-          status: PaymentStatus.PENDING,
-          total,
-          currency: 'USD',
-          paymentAmount: new Prisma.Decimal(usdAmount),
-          exchangeRate: new Prisma.Decimal(rate),
-          detailOrders: {
-            create: details,
+        const dbProducts = await tx.product.findMany({
+          where: {
+            id_product: { in: ids },
           },
-        },
-      });
-    });
+          select: {
+            id_product: true,
+            name: true,
+            price: true,
+            stock: true,
+          },
+        });
+
+        if (dbProducts.length !== products.length) {
+          throw new NotFoundException('Uno o más productos no existen');
+        }
+
+        const productMap = new Map(dbProducts.map((p) => [p.id_product, p]));
+
+        let total = 0;
+
+        const details = products.map((item) => {
+          const product = productMap.get(item.id_product)!;
+
+          if (product.stock < item.amount) {
+            throw new BadRequestException(
+              `Stock insuficiente: ${product.name}`,
+            );
+          }
+
+          const subtotal = product.price * item.amount;
+
+          if (!Number.isSafeInteger(subtotal)) {
+            throw new BadRequestException('Subtotal inválido');
+          }
+
+          total += subtotal;
+
+          if (!Number.isSafeInteger(total)) {
+            throw new BadRequestException('Total inválido');
+          }
+
+          return {
+            id_product: item.id_product,
+            amount: item.amount,
+            unit_price: product.price,
+          };
+        });
+
+        if (total <= 0) {
+          throw new BadRequestException('El total debe ser mayor a cero');
+        }
+
+        const usdAmount = (total / rate).toFixed(2);
+
+        if (Number(usdAmount) < 0.01) {
+          throw new BadRequestException(
+            'El importe convertido es inferior al mínimo de PayPal',
+          );
+        }
+
+        return tx.order.create({
+          data: {
+            id_user,
+            method: PaymentMethod.PAYPAL,
+            status: PaymentStatus.PENDING,
+            total,
+            currency: 'USD',
+            paymentAmount: new Prisma.Decimal(usdAmount),
+            exchangeRate: new Prisma.Decimal(rate),
+            detailOrders: {
+              create: details,
+            },
+          },
+        });
+      },
+      {
+        maxWait: 15000,
+        timeout: 30000,
+      },
+    );
 
     try {
       const paypalOrder = await this.paypal.createOrder(
