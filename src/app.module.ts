@@ -12,9 +12,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BrandModule } from './modules/brands.module';
 import { CategoriesModule } from './modules/categories.module';
 import { IAModule } from './modules/ia.module';
+import { OrderModule } from './modules/order.module';
 import { ProductsModule } from './modules/products.module';
 import { SupplierModule } from './modules/suppliers.module';
 import { UsersModule } from './modules/users.module';
+import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -26,6 +28,8 @@ import { PrismaModule } from './prisma/prisma.module';
     CategoriesModule,
     BrandModule,
     ProductsModule,
+    OrderModule,
+    PaymentsModule,
     IAModule,
   ],
 })
