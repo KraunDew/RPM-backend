@@ -145,6 +145,9 @@ export class usersService {
     if (typeof data.password === 'string') {
       data.password = await argon2.hash(data.password);
     }
+    if (typeof data.birthDate === 'string') {
+      data.birthDate = new Date(data.birthDate);
+    }
     const updatedUser = await this.prisma.user.update({
       where: { id_user: id },
       data,
