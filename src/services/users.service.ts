@@ -45,6 +45,8 @@ export class usersService {
         firstName: true,
         lastName: true,
         email: true,
+        phone_number: true,
+        birthDate: true,
         role: true,
       },
     });
@@ -72,7 +74,7 @@ export class usersService {
 
       // Validar requisitos de seguridad de la contraseña
       const passwordRegex =
-        /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']).+$/;
+        /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/;']).+$/;
 
       if (!passwordRegex.test(user.password)) {
         throw new HttpException(

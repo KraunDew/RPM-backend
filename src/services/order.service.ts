@@ -41,6 +41,22 @@ export class OrderService {
     });
   }
 
+  getOrdersForUser(id_user: string) {
+    return this.prisma.order.findMany({
+      where: { id_user },
+      include: {
+        detailOrders: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    });
+  }
+
   async createOrder(
     id_user: string,
     method: Prisma.OrderCreateInput['method'],

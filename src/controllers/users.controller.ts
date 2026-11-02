@@ -16,6 +16,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpException,
   HttpStatus,
@@ -99,7 +100,18 @@ export class usersController {
   }
 
   @Patch('/:id') // Creamos un parametro llamado id
-  updateUser(@Param('id') id: string, @Body() data: Prisma.UserUpdateInput) {
+  @UseGuards(JwtGuard)
+  updateUser(
+    @Param('id') id: string,
+    @Body() data: Prisma.UserUpdateInput,
+    @Req() req: { user?: { id?: string } },
+  ) {
+    if (req.user?.id !== id) {
+      throw new ForbiddenException(
+        'No puedes modificar el perfil de otro usuario.',
+      );
+    }
+
     // Obtenemos el valor del parametro id, y lo que tiene el body / formulario
     return this.usersService.updateUser(id, data); // Y se lo pasamos a la funcion para actualizar el usuario
   }

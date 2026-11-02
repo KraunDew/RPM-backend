@@ -9,6 +9,7 @@
 
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AddressesModule } from './modules/addresses.module';
 import { BrandModule } from './modules/brands.module';
 import { CategoriesModule } from './modules/categories.module';
 import { IAModule } from './modules/ia.module';
@@ -23,6 +24,7 @@ import { PrismaModule } from './prisma/prisma.module';
   imports: [
     MongooseModule.forRoot(process.env.URL_MONGOODB!), //Busca la URL en el .env para conectarse a la BD
     PrismaModule,
+    AddressesModule,
     UsersModule, //Importamos y usamos rutas y funciones de User
     SupplierModule, // Lo mismo con los proveedores
     CategoriesModule,

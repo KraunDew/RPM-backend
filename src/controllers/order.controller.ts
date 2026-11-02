@@ -31,6 +31,16 @@ export class OrderController {
     return this.orderService.getAllOrders();
   }
 
+  @Get('/me')
+  @UseGuards(JwtGuard)
+  getMyOrders(@Req() req: AuthenticatedRequest) {
+    if (!req.user?.id) {
+      throw new BadRequestException('No se pudo identificar al usuario');
+    }
+
+    return this.orderService.getOrdersForUser(req.user.id);
+  }
+
   @Get('/:id')
   async getOrderById(@Param('id') id: string) {
     const order = await this.orderService.getOrderById(id);
