@@ -70,6 +70,17 @@ export class usersService {
         );
       }
 
+      // Validar requisitos de seguridad de la contraseña
+      const passwordRegex =
+        /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']).+$/;
+
+      if (!passwordRegex.test(user.password)) {
+        throw new HttpException(
+          'La contraseña debe contener al menos una letra mayúscula, una minúscula, un número y un símbolo especial.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       const password = await argon2.hash(user.password);
       const birthDate = new Date(user.birthDate as string);
 
